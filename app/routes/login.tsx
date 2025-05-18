@@ -30,7 +30,7 @@ export default function LogIn(p: Route.ComponentProps) {
             name="password"
             required={true}
             placeholder="********"
-            error=""
+            error={errors?.password}
             helpText=""
           />
           <Button type="submit" className="w-full">
@@ -61,17 +61,20 @@ export async function action(p: Route.ActionArgs) {
 
   const errors = {} as FormFields;
   const emailError = validateEmail(email);
+  const passwordError = validatePassword(password);
   if (emailError) {
     errors.email = emailError;
   }
-
+  if (passwordError) {
+    errors.password = passwordError;
+  }
   // If we encountered any errors
   if (Object.keys(errors).length > 0) {
     return {
       errors,
       values: {
         email: String(email),
-        password,
+        password: String(password),
       },
     };
   }
@@ -87,12 +90,20 @@ function validateEmail(email: FormDataEntryValue | null): string {
   }
 
   const emailValue = String(email);
-
   const noroffEmailPattern = /^[a-zA-Z0-9._%+-]+@(stud\.)?noroff\.no$/;
 
   if (!noroffEmailPattern.test(emailValue)) {
     return "Invalid email provided";
   }
 
+  return "";
+}
+
+function validatePassword(password: FormDataEntryValue | null): string {
+  const passwordValue = String(password);
+
+  if (passwordValue.length < 8) {
+    return "Invalid password provided";
+  }
   return "";
 }
