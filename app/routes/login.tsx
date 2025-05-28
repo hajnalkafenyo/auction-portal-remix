@@ -11,7 +11,7 @@ export function meta() {
     {
       title: "Login - Noroff",
     },
-  ]
+  ];
 }
 
 export default function LogIn(p: Route.ComponentProps) {
@@ -80,7 +80,7 @@ export async function action(p: Route.ActionArgs) {
   // If we encountered any errors
   if (Object.keys(errors).length > 0) {
     return {
-      errors
+      errors,
     };
   }
 
@@ -103,8 +103,6 @@ export async function action(p: Route.ActionArgs) {
       },
     });
   }
-
-
 
   return redirect("/");
 }
