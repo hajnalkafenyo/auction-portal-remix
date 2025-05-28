@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import type { Route } from "./+types/register";
-import { redirect } from "react-router";
+import { Form, redirect } from "react-router";
 
 export function meta() {
   return [
@@ -14,12 +14,11 @@ export function meta() {
 
 export default function Register(p: Route.ComponentProps) {
   const errors = p.actionData?.errors;
-  const values = p.actionData?.values;
   return (
     <div className="bg-gray-100 flex items-center justify-center h-screen md:m-16 m-1">
       <div className="bg-white border-solid rounded-md border-2 border-gray-200 shadow p-4 w-full max-w-[400px]">
         <h1 className="header-1 flex items-center justify-center">Register</h1>
-        <form id="form" method="POST">
+        <Form id="form" method="POST">
           <Input
             className="mb-4"
             label="Name"
@@ -29,7 +28,6 @@ export default function Register(p: Route.ComponentProps) {
             placeholder="John Smith"
             error={errors?.name}
             helpText="Your name less than 20 characters"
-            value={values?.name}
           />
           <Input
             className="mb-4"
@@ -40,7 +38,6 @@ export default function Register(p: Route.ComponentProps) {
             placeholder="sample@noroff.no"
             error={errors?.email}
             helpText="You should use @noroff.no email address"
-            value={values?.email}
           />
           <Input
             className="mb-6"
@@ -65,7 +62,7 @@ export default function Register(p: Route.ComponentProps) {
           <Button type="submit" className="w-full">
             Register
           </Button>
-        </form>
+        </Form>
         <p className="m-1.5 flex items-center justify-center">
           Don't have an account?
           <a className="font-medium" href="register.html">
@@ -113,12 +110,6 @@ export async function action(p: Route.ActionArgs) {
   if (Object.keys(errors).length > 0) {
     return {
       errors,
-      values: {
-        name: String(name),
-        email: String(email),
-        password: String(password),
-        repeatPassword: String(repeatPassword),
-      },
     };
   }
 

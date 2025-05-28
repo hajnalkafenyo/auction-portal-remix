@@ -2,16 +2,26 @@ import React from "react";
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import type { Route } from "./+types/login";
-import { redirect } from "react-router";
+import { Form, redirect } from "react-router";
+import { NoroffClient } from "~/.server/noroff-api";
+import { commitSession, getSession } from "~/.server/session";
+
+export function meta() {
+  return [
+    {
+      title: "Login - Noroff",
+    },
+  ]
+}
 
 export default function LogIn(p: Route.ComponentProps) {
   const errors = p.actionData?.errors;
-  const values = p.actionData?.values;
+
   return (
     <div className="bg-gray-100 flex items-center justify-center h-screen md:m-16 m-1">
       <div className="bg-white border-solid rounded-md border-2 border-gray-200 shadow p-4 w-full max-w-[400px]">
         <h1 className="header-1 flex items-center justify-center">Login</h1>
-        <form id="form" method="POST">
+        <Form id="form" method="POST">
           <Input
             className="mb-4"
             label="Email"
@@ -21,7 +31,6 @@ export default function LogIn(p: Route.ComponentProps) {
             placeholder="sample@noroff.no"
             error={errors?.email}
             helpText="You should use @noroff.no email address"
-            value={values?.email}
           />
           <Input
             className="mb-6"
@@ -36,7 +45,7 @@ export default function LogIn(p: Route.ComponentProps) {
           <Button type="submit" className="w-full">
             Sign In
           </Button>
-        </form>
+        </Form>
         <p className="m-1.5 flex items-center justify-center">
           Don't have an account?
           <a className="font-medium" href="register.html">
@@ -71,15 +80,31 @@ export async function action(p: Route.ActionArgs) {
   // If we encountered any errors
   if (Object.keys(errors).length > 0) {
     return {
-      errors,
-      values: {
-        email: String(email),
-        password: String(password),
-      },
+      errors
     };
   }
 
-  // Login logic
+  const session = await getSession(p.request.headers.get("Cookie"));
+  try {
+    const noroffClient = new NoroffClient();
+    const user = await noroffClient.login(email as string, password as string);
+    session.set("userName", user.name);
+    session.set("accessToken", user.accessToken);
+    return redirect("/", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  } catch (error) {
+    session.flash("error", "Login failed. Please check your credentials.");
+    return redirect("/login", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
+
+
 
   return redirect("/");
 }
