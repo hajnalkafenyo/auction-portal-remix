@@ -1,4 +1,4 @@
-import { createCookieSessionStorage } from "react-router";
+import { createCookieSessionStorage, href, redirect } from "react-router";
 
 interface SessionData {
     userName: string;
@@ -19,6 +19,23 @@ const {
     }
 
 });
+
+export async function getUser(r: Request){
+    const cookies = r.headers.get("Cookie");
+    if (!cookies){
+        throw redirect(href("/login"));
+    }
+    const session = await getSession(cookies);
+    const userName = session.get("userName")
+    const accessToken = session.get("accessToken")
+    if(!userName || !accessToken){
+        throw redirect(href("/login"));
+    }
+    return {
+        userName,
+        accessToken
+    }
+}
 
 export {
     getSession,

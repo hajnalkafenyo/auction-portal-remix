@@ -22,6 +22,15 @@ interface NoroffResponse<T> {
     meta: {};
 }
 
+interface Profile extends BaseUser{
+    bio: string;
+    credits: number;
+    "_count":{
+        listings: number;
+        wins: number;
+    }
+}
+
 export class NoroffClient {
     private accessToken: string | null = null;
 
@@ -54,6 +63,31 @@ export class NoroffClient {
         const data = await response.json() as NoroffResponse<LoginUser>;
 
         this.accessToken = data.data.accessToken;
+
+        return data.data;
+    }
+
+    async getProfile(id: string): Promise <Profile>{
+    const response = await fetch(`${API_BASE_URL}/auction/profiles/${id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${this.accessToken}`,
+                "X-Noroff-API-Key": NOROFF_API_KEY,
+            },
+        });
+        if (response.status===404){
+            throw new Response("User not found", {
+                status: 404
+            });
+        }
+        if (!response.ok) {
+            throw new Response('Failed getting user profile',{
+                status: 500
+            });
+        }
+
+        const data = await response.json() as NoroffResponse<Profile>;
 
         return data.data;
     }

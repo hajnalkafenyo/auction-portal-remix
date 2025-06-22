@@ -1,10 +1,21 @@
-import { Outlet } from "react-router";
+import { href, Link, Outlet } from "react-router";
+import type { Route } from "./+types/index";
+import { getUser } from "~/.server/session";
+import { NoroffClient } from "~/.server/noroff-api";
 
-export default function Index() {
-  const user = {
-    name: "Test Person",
-    credits: 1000,
+export async function loader(p: Route.LoaderArgs) {
+  const user = await getUser(p.request);
+  const client = new NoroffClient(user.accessToken);
+  const profile = await client.getProfile(user.userName);
+
+  return {
+    profile: profile,
   };
+}
+
+export default function Index(p: Route.ComponentProps) {
+  const profile = p.loaderData.profile;
+
   return (
     <div className="bg-gray-100 flex flex-col min-h-screen">
       <header className="">
@@ -55,17 +66,16 @@ export default function Index() {
                 title="Your Credits"
                 className="bg-secondary p-2 pt-2 rounded-lg text-primary font-medium"
               >
-                💰{user.credits}
+                💰{profile.credits}
               </div>
-              <a
+              <Link
                 data-toggle="popover"
                 title="Your user"
-                href="profile.html?id=${user.name}"
-                id="headerUser"
+                to={href("/profile/:username?")}
                 className="font-medium text-primary items-center"
               >
-                {user.name}
-              </a>
+                {profile.name}
+              </Link>
               <a
                 data-toggle="popover"
                 title="Log out"
