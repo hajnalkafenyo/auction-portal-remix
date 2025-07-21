@@ -1,35 +1,9 @@
+import type { Listing, LoginUser, NoroffResponse, Profile } from "~/types";
+
 const API_BASE_URL = 'https://v2.api.noroff.dev';
 const NOROFF_API_KEY = "72a1c703-80ba-45da-a12e-3fcc1efb2c64"
 
-interface Image {
-    url: string;
-    alt: string;
-}
 
-interface BaseUser {
-    name: string;
-    email: string;
-    avatar: Image;
-    banner: Image;
-}
-
-interface LoginUser extends BaseUser {
-    accessToken: string;
-}
-
-interface NoroffResponse<T> {
-    data: T;
-    meta: {};
-}
-
-interface Profile extends BaseUser{
-    bio: string;
-    credits: number;
-    "_count":{
-        listings: number;
-        wins: number;
-    }
-}
 
 export class NoroffClient {
     private accessToken: string | null = null;
@@ -68,7 +42,7 @@ export class NoroffClient {
     }
 
     async getProfile(id: string): Promise <Profile>{
-    const response = await fetch(`${API_BASE_URL}/auction/profiles/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/auction/profiles/${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -91,5 +65,32 @@ export class NoroffClient {
 
         return data.data;
     }
-}
+
+    async getlistings(): Promise <Listing[]>{
+        const response = await fetch (`${API_BASE_URL}/auction/listings?_bids=true&_seller=true&_active=true`, {
+            method: 'GET',
+            headers: {
+                "Authorization": `Bearer ${this.accessToken}`,
+                "X-Noroff-API-Key": NOROFF_API_KEY,
+            },
+        });
+        if (response.status===404){
+            throw new Response("Listing not found", {
+                status: 404
+            });
+        }
+        if (!response.ok) {
+            throw new Response('Failed getting listings',{
+                status: 500
+            });
+        }
+
+        const data = await response.json() as NoroffResponse<Listing[]>;
+
+        return data.data;
+    }
+    }
+
+
+
 
